@@ -6,8 +6,11 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -19,57 +22,72 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ProfileActivity extends AppCompatActivity {
-    private Button signOutButton;
-    private GoogleSignInClient googleSignInClient;
-    private RecyclerView profileView;
+
+    private static final String TAG = ProfileActivity.class.getSimpleName();
     private OkHttpClient client;
     private Gson gson;
     private static ArrayList<User> peopleArrayList;
-    private GoogleSignInAccount googleSignInAccount;
     private User googlePerson;
-    private UserAdapter adapter;
+    public static boolean isAlreadyCalled = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        profileView = findViewById(R.id.profile_view);
-        signOutButton = findViewById(R.id.sign_out);
+        Log.i(TAG, "in onCreate method");
+
+        RecyclerView profileView = findViewById(R.id.profile_view);
+        Button signOutButton = findViewById(R.id.sign_out);
 
         client = new OkHttpClient();
         gson = new Gson();
         peopleArrayList = new ArrayList<>();
 
-        googleSignInAccount = GoogleSignIn.getLastSignedInAccount(this);
+        GoogleSignInAccount googleSignInAccount = GoogleSignIn.getLastSignedInAccount(this);
         if (googleSignInAccount != null) {
             String personName = googleSignInAccount.getDisplayName();
-            String personEmail = googleSignInAccount.getEmail();
-            googlePerson = new User(personName, personEmail);
+            String personPicture = String.valueOf(googleSignInAccount.getPhotoUrl());
+            googlePerson = new User(personName, personPicture);
         }
 
-        try {
-            run();
-            peopleArrayList.add(googlePerson);
-        } catch (Exception e) {
-            e.printStackTrace();
+        SharedPreferences sharedpreferences = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+        isAlreadyCalled = sharedpreferences.getBoolean("isDestroyedCalled", isAlreadyCalled);
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.remove("isDestroyedCalled");
+        editor.apply();
+
+        if (!isAlreadyCalled) {
+            try {
+                run();
+                peopleArrayList.add(googlePerson);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            isAlreadyCalled = true;
+        }
+        else {
+            sharedpreferences = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+            String jsonFile = sharedpreferences.getString("Json File", null);
+            Gson gson = new Gson();
+            Type type = new TypeToken<List<User>>() {}.getType();
+            peopleArrayList = gson.fromJson(jsonFile, type);
         }
 
-        adapter = new UserAdapter(this, peopleArrayList);
+        UserAdapter adapter = new UserAdapter(this, peopleArrayList);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         profileView.setLayoutManager(layoutManager);
         profileView.setItemAnimator(new DefaultItemAnimator());
@@ -85,6 +103,38 @@ public class ProfileActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i(TAG, "in onStart method");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i(TAG, "in onResume method");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        SharedPreferences sharedpreferences = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        Gson gson = new Gson();
+        String jsonFile = gson.toJson(peopleArrayList);
+        editor.putString("Json File", jsonFile);
+        editor.apply();
+
+        Log.i(TAG, "in onPause method");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i(TAG, "in onDestroy method");
     }
 
     public void run() {
@@ -115,7 +165,7 @@ public class ProfileActivity extends AppCompatActivity {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .build();
-        googleSignInClient = GoogleSignIn.getClient(this, gso);
+        GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(this, gso);
         googleSignInClient.signOut();
         Toast.makeText(ProfileActivity.this, "Signed out", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(this, MainActivity.class);

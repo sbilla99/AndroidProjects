@@ -18,6 +18,7 @@ import com.google.android.gms.tasks.Task;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
     SignInButton signInButton;
     GoogleSignInClient googleSignInClient;
     private static final int RC_SIGN_IN = 1;
@@ -82,5 +83,25 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
             startActivity(intent);
         }
+
+        Log.i(TAG, "in onStart method");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i(TAG, "in onResume method");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i(TAG, "in onPause method");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i(TAG, "in onDestroy method");
     }
 }
