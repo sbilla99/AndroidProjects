@@ -3,8 +3,12 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
-        <entry key="app/src/main/res/layout/activity_profile.xml" value="0.26132246376811596" />
+        <entry key="../../../../../.gradle/caches/transforms-3/c247fbe16cfb168c5d8e079da1f8ee44/transformed/jetified-play-services-base-18.0.0/res/drawable/common_google_signin_btn_icon_dark.xml" value="0.29583333333333334" />
+        <entry key="../../../../../.gradle/caches/transforms-3/c247fbe16cfb168c5d8e079da1f8ee44/transformed/jetified-play-services-base-18.0.0/res/drawable/common_google_signin_btn_icon_dark_focused.xml" value="0.29583333333333334" />
+        <entry key="../../../../../.gradle/caches/transforms-3/c247fbe16cfb168c5d8e079da1f8ee44/transformed/jetified-play-services-base-18.0.0/res/drawable/common_google_signin_btn_text_dark.xml" value="0.29583333333333334" />
+        <entry key="../../../../../.gradle/caches/transforms-3/c247fbe16cfb168c5d8e079da1f8ee44/transformed/jetified-play-services-base-18.0.0/res/drawable/common_google_signin_btn_text_dark_focused.xml" value="0.29583333333333334" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.28478950956850096" />
+        <entry key="app/src/main/res/layout/activity_profile.xml" value="0.3952139963225277" />
         <entry key="app/src/main/res/layout/activity_user.xml" value="0.3755908046273274" />
         <entry key="app/src/main/res/layout/google_sign_in_activity_profile.xml" value="0.14361702127659576" />
         <entry key="app/src/main/res/layout/list_items.xml" value="0.29923273657289" />

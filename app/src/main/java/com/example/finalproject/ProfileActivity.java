@@ -2,6 +2,7 @@ package com.example.finalproject;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -41,7 +42,9 @@ public class ProfileActivity extends AppCompatActivity {
     private Gson gson;
     private static ArrayList<User> peopleArrayList;
     private User googlePerson;
-    public static boolean isAlreadyCalled = false;
+    public static boolean isDisplayed = false;
+    Notifications notifications;
+    NotificationManagerCompat notificationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +60,9 @@ public class ProfileActivity extends AppCompatActivity {
         gson = new Gson();
         peopleArrayList = new ArrayList<>();
 
+        notifications = new Notifications(this);
+        notificationManager = NotificationManagerCompat.from(this);
+
         GoogleSignInAccount googleSignInAccount = GoogleSignIn.getLastSignedInAccount(this);
         if (googleSignInAccount != null) {
             String personName = googleSignInAccount.getDisplayName();
@@ -65,19 +71,19 @@ public class ProfileActivity extends AppCompatActivity {
         }
 
         SharedPreferences sharedpreferences = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
-        isAlreadyCalled = sharedpreferences.getBoolean("isDestroyedCalled", isAlreadyCalled);
+        isDisplayed = sharedpreferences.getBoolean("isDestroyedCalled", isDisplayed);
         SharedPreferences.Editor editor = sharedpreferences.edit();
         editor.remove("isDestroyedCalled");
         editor.apply();
 
-        if (!isAlreadyCalled) {
+        if (!isDisplayed) {
             try {
                 run();
                 peopleArrayList.add(googlePerson);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            isAlreadyCalled = true;
+            isDisplayed = true;
         }
         else {
             sharedpreferences = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
@@ -114,6 +120,10 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        MainActivity.isActivityDisplayed = false;
+        notificationManager.cancelAll();
+
         Log.i(TAG, "in onResume method");
     }
 
@@ -127,6 +137,11 @@ public class ProfileActivity extends AppCompatActivity {
         String jsonFile = gson.toJson(peopleArrayList);
         editor.putString("Json File", jsonFile);
         editor.apply();
+
+        if(!MainActivity.isActivityDisplayed) {
+            notifications.createNotificationChannel(getClass());
+            notifications.onDestroy();
+        }
 
         Log.i(TAG, "in onPause method");
     }
@@ -169,6 +184,7 @@ public class ProfileActivity extends AppCompatActivity {
         googleSignInClient.signOut();
         Toast.makeText(ProfileActivity.this, "Signed out", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(this, MainActivity.class);
+        MainActivity.isActivityDisplayed = true;
         startActivity(intent);
         finish();
     }

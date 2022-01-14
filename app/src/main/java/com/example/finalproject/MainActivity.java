@@ -1,6 +1,7 @@
 package com.example.finalproject;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationManagerCompat;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -22,6 +23,9 @@ public class MainActivity extends AppCompatActivity {
     SignInButton signInButton;
     GoogleSignInClient googleSignInClient;
     private static final int RC_SIGN_IN = 1;
+    Notifications notifications;
+    NotificationManagerCompat notificationManager;
+    public static boolean isActivityDisplayed = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +39,10 @@ public class MainActivity extends AppCompatActivity {
                 .requestProfile()
                 .build();
         googleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        notifications = new Notifications(this);
+        notificationManager = NotificationManagerCompat.from(this);
+
         signInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -49,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void signIn() {
         Intent signInIntent = googleSignInClient.getSignInIntent();
+        isActivityDisplayed = true;
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
@@ -90,12 +99,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        isActivityDisplayed = false;
+        notificationManager.cancelAll();
+
         Log.i(TAG, "in onResume method");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+
+        if (!isActivityDisplayed) {
+            notifications.createNotificationChannel(getClass());
+            notifications.onDestroy();
+        }
+
         Log.i(TAG, "in onPause method");
     }
 

@@ -12,6 +12,7 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -31,14 +32,14 @@ public class UserActivity extends AppCompatActivity {
     private EditText email;
     private EditText phone;
     private EditText website;
-    private Button saveButton;
-    private ArrayList<User> peopleArrayList;
     String aName;
     String aPicture;
     String aUsername;
     String aEmail;
     String aPhone;
     String aWebsite;
+    Notifications notifications;
+    NotificationManagerCompat notificationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +52,7 @@ public class UserActivity extends AppCompatActivity {
         email = findViewById(R.id.pEmail);
         phone = findViewById(R.id.pPhone);
         website = findViewById(R.id.pWebsite);
-        saveButton = findViewById(R.id.save);
+        Button saveButton = findViewById(R.id.save);
 
         aName = getIntent().getStringExtra("Name");
         aPicture = getIntent().getStringExtra("Picture");
@@ -68,10 +69,14 @@ public class UserActivity extends AppCompatActivity {
         phone.setText(aPhone);
         website.setText(aWebsite);
 
+        notifications = new Notifications(this);
+        notificationManager = NotificationManagerCompat.from(this);
+
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+                MainActivity.isActivityDisplayed = true;
                 startActivity(intent);
                 finish();
             }
@@ -87,6 +92,10 @@ public class UserActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        MainActivity.isActivityDisplayed = false;
+        notificationManager.cancelAll();
+
         Log.i(TAG, "in onResume method");
     }
 
@@ -98,7 +107,7 @@ public class UserActivity extends AppCompatActivity {
         String jsonFile = sharedpreferences.getString("Json File", null);
         Gson gson = new Gson();
         Type type = new TypeToken<List<User>>() {}.getType();
-        peopleArrayList = gson.fromJson(jsonFile, type);
+        ArrayList<User> peopleArrayList = gson.fromJson(jsonFile, type);
         for (User user : peopleArrayList) {
             if (user.getName().equals(aName)) {
                 user.setName(name.getText().toString());
@@ -112,6 +121,17 @@ public class UserActivity extends AppCompatActivity {
         jsonFile = gson.toJson(peopleArrayList);
         editor.putString("Json File", jsonFile);
         editor.apply();
+
+        if (!MainActivity.isActivityDisplayed) {
+            notifications.createNotificationChannel(getClass(),
+                    getIntent().getStringExtra("Name"),
+                    getIntent().getStringExtra("Picture"),
+                    getIntent().getStringExtra("Username"),
+                    getIntent().getStringExtra("Email"),
+                    getIntent().getStringExtra("Phone"),
+                    getIntent().getStringExtra("Website"));
+        }
+        notifications.onDestroy();
 
         Log.i(TAG, "in onPause method");
     }
